@@ -49,13 +49,22 @@ def get_lesson(year_of_study, group_letter, title):
 
 def create_commendation(full_name, subject):
     text = choice(COMMENDATIONS)
-    child = Schoolkid.objects.get(full_name__contains=full_name)
-    lesson = get_lesson(child.year_of_study, child.group_letter, subject)
-
+    try:
+        child = Schoolkid.objects.get(full_name__contains=full_name)
+        lesson = get_lesson(child.year_of_study, child.group_letter, subject)
+    except Schoolkid.DoesNotExist:
+        print('Ученика с таким именем не найдено, проверьте правильность написания имени.')
+        return
+    except Subject.DoesNotExist:
+        print('В названии предмета допущена ошибка, либо такого предмета не существует.')
+        return
+    except Schoolkid.MultipleObjectsReturned:
+        print('Найдено больше одного ученика с таким именем, попробуйте указать полное имя(ФИО)')
+        return
     commendation = Commendation.objects.create(
         text=text,
-        created=lesson.date,
         schoolkid=child,
+        created=lesson.date,
         subject=lesson.subject,
         teacher=lesson.teacher,
         )
